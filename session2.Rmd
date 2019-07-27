@@ -1,0 +1,1027 @@
+
+<br> 
+<center><img src="http://i.imgur.com/sSaOozN.png" width="500"></center>
+
+
+## Course: Data-Driven Management and Policy
+
+### Prof. José Manuel Magallanes, PhD 
+
+_____
+
+
+# Session 6: Spatial and Multivariate Plotting
+
+<a id='toc'></a>
+
+_____
+
+
+1. [Bivariate Plots.](#bivar)
+    * [Categorical association](#bicat)
+    * [Numerical correlation](#binum)
+<br></br>
+2. [Multivariate Plots.](#multivar)
+    * [Without Dimensionality Reduction](#NoRedux)
+    * [With Dimensionality Reduction](#NoRedux)
+<br></br>
+3. [Making maps.](#maps)
+
+_______
+
+<a id='bivar'></a>
+
+## Bivariate Plots
+
+We analyze two variables to find out if there might be some kind of association between them. Even though that may be difficult to clearly identify, bivariate analysis still helps reveal _signs_ of association that may serve at least to raise concern.
+
+
+This time, I will use the [data about crime](https://data.seattle.gov/Public-Safety/Crime-Data/4fs7-3vj5) from the Seattle Open Data portal:
+
+```{r collect, eval=TRUE}
+link="https://github.com/EvansDataScience/data/raw/master/crime.RData"
+load(file = url(link))
+```
+
+
+Let's see what kind of data we have:
+
+```{r str, eval=TRUE}
+str(crime,width = 70,strict.width='cut')
+```
+
+
+## Categorical association
+
+The main way to organize these relationships are the contingency tables. Let's select a couple of categorical variables:
+
+```{r table, eval=TRUE}
+(CrimeTotal=table(crime$crimecat,crime$Occurred.DayTime))
+```
+
+
+The table above shows counts, but in most situations, it is important to see relative values:
+
+```{r table_rel_PIPES,eval=TRUE}
+# using "pipes" to help readability:
+library(magrittr)
+
+CrimeTotal=table(crime$crimecat,crime$Occurred.DayTime)%>% #create table and then...
+        prop.table() %>% #compute proportion and then...
+        "*"(100)%>% # multiply by 100 and then...
+        round(2) #...round to to decimals
+
+# you get:
+CrimeTotal
+```
+
+Those tables show total counts or percents. However, when a table tries to hypothesize a relationship, you should have the _independent_ variable in the columns, and the _dependent_ one in the rows; then, the percent should be calculated by column, to see how the levels of the dependent variable varies by each level of the independent one, and compare along rows.
+
+
+```{r table_byCol,eval=TRUE}
+CrimeCol=table(crime$crimecat,crime$Occurred.DayTime)%>%
+         prop.table(margin = 2)%>%   # 2 is % by column
+         "*"(100)%>%
+         round(3)
+
+# you get:
+CrimeCol
+```
+
+
+
+The complexity of two variables requires plots, as tables like these will not allow you to discover *association patterns* easily, even though they are already a summary of two columns. However, you must check the data format the plotting functions require, as most plots will use the contingency table as input (not the raw data).
+
+Let me try a basic bar plot with the contingency table as input:
+
+```{r BADplot,eval=TRUE}
+barplot(CrimeCol)
+```
+
+This plot will need a lot of work, so the base capabilities of R may not be a good strategy; and as before, we will turn to ggplot. 
+
+However, when using alternative/more specialized plotting features you may need to convert your table into a dataframe of frequencies, let me create the base proportions table:
+
+```{r convertToDFgg,eval=TRUE}
+df.T=as.data.frame(CrimeCol) # table of proportion based on total
+# YOU GET:
+head(df.T)
+```
+
+We should rename the above table:
+```{r, eval=TRUE}
+names(df.T)=c('Crime','Daytime','Percent') #renaming
+head(df.T)
+```
+
+A first option you may have is to reproduce the table:
+
+```{r plotTable_gg, eval=TRUE}
+library(ggplot2)
+
+base = ggplot(df.T, aes(Daytime,Crime)) 
+
+# plot value as point, size by value of percent
+tablePlot1 = base + geom_point(aes(size = Percent), colour = "gray") 
+
+# add value of Percent as label
+tablePlot2 = tablePlot1 + geom_text(aes(label = Percent),
+                                    nudge_x = 0.1, # push the value to the right on the horizontal
+                                    size=2)
+tablePlot2
+```
+
+...some more work:
+
+```{r, eval=TRUE}
+# improve the size of dots
+tablePlot3 = tablePlot2 + scale_size_continuous(range=c(0,10)) #change 10?
+
+# less ink
+tablePlot4 = tablePlot3 + theme_minimal() 
+
+# no legend
+tablePlot4 + theme(legend.position="none") 
+```
+
+
+
+The plot looks nice, but unless the differences are clearly cut, you may see more noise than information, which distracts and delays decision making. Keep in mind that _length_ of bars are easier to compare than circle _areas_. You need a barplot:
+
+
+And, the original relationship Input-Output table can be plotted like this:
+
+```{r flip_facet, eval=TRUE}
+base  = ggplot(df.T, aes(x = Crime, y = Percent ) ) 
+bars1 = base + geom_bar( stat = "identity" )
+bars2 = bars1 + facet_wrap( ~ Daytime ,nrow = 1) 
+bars2 + coord_flip()
+```
+
+The type of crime is not ordinal, then we could reorder the bars:
+
+```{r orderFacet, eval=TRUE}
+base  = ggplot(df.T, aes(x = reorder(Crime, Percent), # reordering Crime based on percent value
+                         y = Percent ) ) 
+
+bars1 = base + geom_bar( stat = "identity" )
+
+bars2 = bars1 + facet_wrap( ~ Daytime ,nrow = 1) 
+
+bars2 + coord_flip() + theme(axis.text.y = element_text(size=4,angle = 45)) 
+```
+
+
+
+## Numerical correlation
+
+The study of bivariate relationships among numerical variables is known as correlation analysis. The data we have been using has few numerical columns, but I will produce two by aggregating the original data set using Neigborhood:
+
+* Aggregating days to report and neighborhood:
+
+
+
+```{r}
+library(dplyr)
+daysByNeigh= crime  %>%  
+                    filter(!is.na(Neighborhood)) %>%
+                    group_by(Neighborhood)  %>%  
+                    summarize(DaysToReport=mean(DaysToReport))  
+
+str(daysByNeigh)
+```
+
+
+* Aggregating share of crimes by neighborhood
+
+
+```{r}
+crimesByNeigh=crime  %>%  
+                    filter(!is.na(Neighborhood)) %>%
+                    group_by(Neighborhood)  %>%  
+                    summarize(crimeShare=length(crimecat)/nrow(crime))#  %>% 
+    
+
+str(crimesByNeigh)
+```
+
+
+
+* Merging the two dataframes: Since both data frames have the same neighboorhood, we can make one data frame by merging them:
+
+```{r mergeDFS, eval=TRUE}
+num_num=merge(daysByNeigh,crimesByNeigh) # 'row name' is the "key"
+head(num_num)
+```
+
+Notice that *Neighborhood* is a factor, since I will use it to annotate it would be better to turn it into a text:
+```{r}
+num_num$Neighborhood=as.character(num_num$Neighborhood)
+```
+
+Once we have the data organized, the clear option is the scatterplot:
+
+```{r scatter, eval=TRUE}
+base = ggplot(num_num, aes(DaysToReport,crimeShare)) 
+plot1= base +  geom_point() 
+plot1
+```
+
+We can improve the plot, this time introducing **ggrepel**:
+
+```{r ggscatter, eval=TRUE}
+library(ggrepel)
+base = ggplot(num_num, aes(DaysToReport,crimeShare,
+                           label=Neighborhood)) # you need this aesthetics!
+plot1= base +  geom_point() 
+plot1 + geom_text_repel()
+```
+
+We can limit the labels, annotating the ones that represent at least 5% of the crimes in the city:
+
+```{r, eval=TRUE}
+plot1 + geom_text_repel(aes(label=ifelse(crimeShare>=0.05,
+                                         num_num$Neighborhood, "")))
+```
+
+
+
+Notice the difference without ggrepel:
+
+```{r simpleScatter,eval=TRUE}
+
+plot1 + geom_text(aes(label=ifelse(crimeShare>=0.05,num_num$Neighborhood, "")))
+```
+
+
+
+An alternative, to highlight overlapping of points:
+```{r hexbins, eval=TRUE}
+library(hexbin)
+base = ggplot(num_num, aes(DaysToReport,crimeShare)) 
+scatp1 = base +  geom_hex(bins = 10)
+scatp2= scatp1 + geom_text_repel(aes(label=ifelse(crimeShare>=0.05,
+                                                  num_num$Neighborhood,
+                                                  ""))) 
+scatp2 + scale_fill_distiller(palette ="Greys",direction=1) # try -1
+```
+
+The palettes can be selected from the [brewer colors website](http://colorbrewer2.org). Using the same palette as before, we can try a different plot (stat_density_2d):
+
+```{r density,eval=TRUE}
+base = ggplot(num_num, aes(DaysToReport,crimeShare)) 
+
+scatp1 = base +  stat_density_2d(aes(fill = ..density..), 
+                                 geom = "raster", contour = FALSE)
+
+scatp2=scatp1+geom_text_repel(aes(label=ifelse(crimeShare>=0.05,
+                                               num_num$Neighborhood, "")))
+
+scatp3= scatp2 + scale_fill_distiller(palette="Greys", direction=1) 
+
+scatp4= scatp3 + guides(fill = guide_legend(title = "Number of\nNeighborhoods",
+                                    title.theme = element_text(size=8)))
+
+scatp4
+```
+
+The extra space you see can disappear using:
+
+```{r, eval=TRUE}
+scatp5 = scatp4 +  scale_x_continuous(expand = c(0, 0)) + 
+         scale_y_continuous(expand = c(0, 0)) 
+scatp5
+```
+
+* [Go to page beginning](#toc)
+
+____
+
+<a id='multivar'></a>
+
+## Multivariate Plots
+
+
+This time, I will use the [data about city safety](https://jpn.nec.com/en/global/ad/insite/download/economist/en/data_workbook_dl.html):
+
+```{r, eval=TRUE}
+library(rio)
+link="https://github.com/EvansDataScience/data/raw/master/safeCitiesIndexAll.xlsx"
+
+safe=import(link)
+```
+
+
+The data available are:
+
+```{r, eval=TRUE}
+names(safe)
+```
+
+These are several variables telling us information about the safety levels of cities in the world, and are related to **D**_igital_, **H**_ealth_, **I**_nfrastructure_, and **P**_ersonal_ dimensions. For each of these dimensions, there are measures of actions taken (**In**), and results (**Out**). 
+
+
+<a id='NoRedux'></a>
+
+### Without dimensionality reduction:
+
+Heatmaps will show you the whole data set. First, we need some reshaping:
+
+```{r, eval=TRUE}
+library(reshape2)
+safeA=melt(safe,
+           id.vars = 'city') # the unit of analysis
+head(safeA)
+```
+
+The _melting_ changed the direction of the data: the columns were sent into rows. This the data in _long format_. Now, the heatmap using this format:
+
+```{r, eval=TRUE}
+
+base = ggplot(data = safeA, aes(x = variable,
+                                y =city)) 
+
+heat1= base +  geom_tile(aes(fill = value)) 
+heat1
+```
+
+Here you can see what rows have higher or lower colors on what set of variables. You can add color palette:
+
+```{r, eval=TRUE}
+#inverse color -1
+heat2 = heat1 + scale_fill_distiller(palette = "RdYlGn",direction = 1)  
+heat2
+```
+
+The column and row names need some work:
+
+```{r, eval=TRUE}
+heat2 + theme(axis.text.x = element_text(angle = 90, 
+                                         hjust = 1,
+                                         size = 4),
+              axis.text.y = element_text(size = 4))
+```
+
+
+The last heatmap above could be 'ordered' so that column and row positions can give us more information:
+
+```{r, eval=TRUE}
+# change in REORDER
+base= ggplot(data = safeA, aes(x = reorder(variable, 
+                                           value, mean, order=TRUE),
+                               y =reorder(city,
+                                          value, mean, order=TRUE)))
+# THIS IS THE SAME
+base + geom_tile(aes(fill = value)) + 
+    scale_fill_distiller(palette = "RdYlGn",direction = 1) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1,size = 4),
+              axis.text.y = element_text(size = 4))
+```
+
+This is still hard to read. An alternative could be to average each dimension, so you get four columns. These data has that information:
+
+```{r, eval=TRUE}
+link2="https://github.com/EvansDataScience/data/raw/master/safeCitiesIndex.xlsx"
+
+safe2=import(link2)
+head(safe2)
+```
+
+
+This same plot can be done using some additional packages related to ggplot. Let me show you the use of _ggiraph_, and _ggiraphExtra_. 
+
+This packages does not need that we alter the shape from wide to long, as the heatplot needed. 
+
+```{r, fig.width=15, fig.height=10, eval=TRUE}
+library(ggiraph)
+library(ggiraphExtra)
+
+base = ggRadar(safe2,aes(colour='city'),legend.position="none") 
+
+plot1 = base + facet_wrap('city',ncol = 10) # ten columns of cities
+
+plot1 
+```
+
+There are many units for this plot. However we could try some improvement making a little change to the original data.
+
+The plan is to rank the cities, and then turn the cities into an ordinal. That requires:
+
+
+```{r, eval=TRUE}
+# get minimun value by row
+safe2$min=apply(safe2[,c(2:5)],1,min)
+
+# turn this min values into a ranking
+safe2$min=rank(safe2$min)
+
+# order city by ranking and turn that ordering into a factor
+cityRk=as.factor(safe2[order(safe2$min),]$city)
+
+# turn city into ordered factor
+safe2$city=factor(safe2$city,
+                   levels= cityRk,
+                   labels = cityRk,
+                   ordered = T)
+
+# delete column with ranks
+safe2$min=NULL
+```
+
+Notice the data seems the same:
+```{r, eval=TRUE}
+head(safe2)
+```
+
+But the structure has varied:
+```{r, eval=TRUE}
+str(safe2)
+```
+
+This is a simpler approach, when data is ready:
+
+```{r, fig.width=15, fig.height=10, eval=TRUE}
+library(ggiraph)
+library(ggiraphExtra)
+library(snakecase)
+
+base = ggRadar(safe2,aes(group='city'),legend.position="none") 
+
+plot1 = base + facet_wrap('city',ncol = 10)
+
+plot1 #+ geom_polygon(fill = 'white',col='orange')
+```
+
+For sure, if we had a small number of cases we could plot layers on top:
+
+```{r, eval=TRUE}
+some=c("Manila","Lima", "Washington DC","Tokyo")
+
+subSafe=safe2[safe2$city %in% some,]
+
+base = ggRadar(subSafe,aes(group='city'),
+               alpha = 0,legend.position="top") 
+
+base #+  theme(legend.title=element_blank())
+
+
+```
+
+Areas and color hues are not as easy to help us discern differences compared to length, so the plots above should be used with care when many cases are represented. 
+
+
+* [Go to page beginning](#toc)
+
+______
+
+
+<a id='NoRedux'></a>
+
+### With dimensionality reduction:
+
+
+
+None of our previous plots represent **dimensionality reduction**, and that is what is coming now.
+
+
+Multidimensional scaling is a technique used to distribute cases in, for example, two dimensions. That will give you a map, where closeness is interpreted as similarity.
+
+1. Create 'distance' matrix: using all the information (columns) available, each case (row) will be compared to each another, finding a distance among each pair.
+```{r}
+distanceAmong <- dist(safe[,-1]) # euclidean distances is default method, omitting name of city
+```
+
+2. Apply the technique:
+
+```{r}
+resultMDS <- cmdscale(distanceAmong,eig=TRUE, k=2) # k is the number of dim
+```
+
+3. Get the coordinates to plot the cases:
+
+```{r}
+dim1 <- resultMDS$points[,1]
+dim2 <- resultMDS$points[,2]
+
+#new data frame created
+coordinates=data.frame(dim1,dim2,city=safe$city)
+
+head(coordinates)
+```
+
+4. Show the map:
+
+```{r, eval=TRUE}
+base= ggplot(coordinates,aes(x=dim1, y=dim2,label=city)) 
+base + geom_text(size=2)
+```
+
+Notice that the coordinates do not inform the same as in the scatter plot (it is not the case that Caracas is among the best), what matters is to know that the closer a city is to another, the more similar it is.
+
+Another key way to reduce dimensionality is **cluster analysis**. In this case we will group the cities using all the information available per city with the kmeans clustering technique:
+
+```{r, eval=TRUE}
+library(cluster)
+set.seed(123)
+
+# computing clusters
+resultKM <- kmeans(safe[,-c(1)], # omitting name of city
+                 centers = 3)    # how many clusters
+```
+
+Let's add the cluster label to our coordinates:
+
+```{r}
+coordinates$cluster=as.factor(resultKM$cluster)
+```
+
+
+
+We could use the cluster information in the MDS plot:
+
+```{r, eval=TRUE}
+base= ggplot(coordinates,aes(x=dim1, y=dim2,label=city,color=cluster)) 
+base + geom_text(size=2)
+```
+
+
+* [Go to page beginning](#toc)
+
+____
+
+____
+
+<a id='maps'></a>
+
+## Making Maps
+
+### Finding Data to plot
+
+We have a [dataset](https://data.wa.gov/Politics/Contributions-to-Candidates-and-Political-Committe/kv7h-kjye) on contributions to Candidates and Political Committees in Washington State for the election year 2016., from the WA state [open data portal](https://data.wa.gov/). 
+
+
+```{r, eval=TRUE}
+link='https://github.com/EvansDataScience/DataDriven_ManagementAndPolicy/raw/master/Session6/contriWA_2016.RData'
+#getting the data TABLE from the file in the cloud:
+load(file=url(link))
+```
+
+
+
+This data frame has more than three million rows, and it is informing of every contribution someone has done to a particular campaign year.
+
+```{r, eval=TRUE}
+str(contriWA_2016,width = 60, strict.width = 'cut')
+```
+
+We could plot any of the categorical or numerical columns in a map, as long as we can have columns that represent a coordinate, or a particular location. As we can see, we could use the last two columns, and the zip code column to connect this data to a map, and then plot our selection of factor or number.
+
+Keep in mind that if every row of our data to plot is based on zip codes, we need a map of zipcodes.
+
+
+
+## Getting the Map
+
+Maps come in different formats. The most common is the **shapefile** which is in fact a collection of files. That makes it more complicated if we want to read the map from a cloud repository. The recommendation is to keep all the shapefiles into a zipped folder in any cloud repository.
+
+```{r, eval=TRUE}
+# link to zipped folder
+zippedSHP= "https://github.com/EvansDataScience/data/raw/master/WAzips.zip"
+
+```
+
+The strategy in R will be to download the compressed folder into your computer. Then, use the following code to unzip it. 
+
+
+```{r, eval=TRUE}
+library(utils)
+temp=tempfile()
+download.file(zippedSHP, temp)
+unzip(temp)
+```
+
+To know what shapefiles are now in your session folder:
+
+```{r, eval=TRUE}
+(maps=list.files(pattern = 'shp'))
+```
+
+We will use the file name you need to open the map:
+
+```{r, eval=TRUE, results='hide', warning=FALSE,message=FALSE}
+# notice the parameters use in the chunk!!
+
+library(rgdal)
+wazipMap <- readOGR("SAEP_ZIP_Code_Tabulation_Areas.shp",stringsAsFactors=F) 
+```
+
+This is your map:
+
+```{r, eval=TRUE}
+library(tmap)
+
+waZips = tm_shape(wazipMap) + tm_polygons()
+waZips
+```
+
+
+
+You can control color like this:
+```{r, eval=TRUE}
+tm_shape(wazipMap) + tm_polygons(border.col = 'blue',
+                                 col = 'yellow')
+```
+
+
+Sometimes you need a dissolved map. That is, just keep the limits of the map:
+
+```{r, eval=TRUE,warning=FALSE}
+library(rmapshaper)
+# This will make just a border of the state
+baseMap <- ms_dissolve(wazipMap)
+```
+
+Then:
+
+```{r, eval=TRUE}
+waBorder = tm_shape(baseMap) + tm_polygons(col = 'white',
+                                           lwd = 1)
+waBorder
+```
+
+## Plotting coordinates:
+
+The dataframe *contriWA_2016* has columns with coordinates, let's turn that data frame into a _spatial point data frame_, while making sure it has the same  coordinate system as our map:
+
+```{r, eval=TRUE, warning=FALSE}
+library(raster)
+
+mapCRS=crs(wazipMap) # projection of our map
+
+contriWA_geo <- SpatialPointsDataFrame(contriWA_2016[,c(10:9)], # Lon/Lat
+                    contriWA_2016,    #the original data frame
+                    proj4string = mapCRS)   # assign a CRS of map 
+
+```
+
+Our new spatial _points_ dataframe looks the same:
+```{r, eval=TRUE}
+names(contriWA_geo)
+```
+
+But it is not a simple data frame:
+
+```{r, eval=TRUE}
+class(contriWA_geo)
+```
+
+
+Now, plot the coordinates of the contributors using both our original and dissolved map (select the right [shape coordinate point](http://www.endmemo.com/program/R/pchsymbols.php)):
+
+```{r, eval=TRUE}
+waDots1 = waBorder + 
+          tm_shape(contriWA_geo) + 
+          tm_dots(size = 0.1,col = 'red',alpha=0.5,shape = 20) 
+
+waDots1
+```
+
+For sure, we can add more elements; like title and its position:
+
+```{r, eval=TRUE, warning=FALSE, message=FALSE}
+
+waDots2 = waDots1 + 
+          tm_layout(main.title = "Points",
+                    main.title.position = 'center') 
+waDots2
+```
+
+The compass (position and symbol):
+
+```{r, eval=TRUE}
+waDots3 = waDots2 +
+          tm_compass(position = c('left','TOP'),type = 'arrow')
+
+waDots3
+
+```
+
+And the scale bar:
+
+```{r, eval=TRUE}
+waDots4 = waDots3 +
+          tm_scale_bar(position=c("RIGHT", "BOTTOM"),width = 0.2) 
+
+waDots4
+```
+
+
+
+Currently, it is very usual to use interactive maps. In that situation, **Leaflet** is a good option:
+
+```{r, eval=TRUE,warning=FALSE}
+library(leaflet)
+
+leaflet(contriWA_geo) %>% # the shapefile
+    addTiles() %>%        #basemap
+    addCircleMarkers(clusterOptions = markerClusterOptions())
+```
+
+
+
+
+
+## Adding information from data frame
+
+
+When you have a way to organize you data by a row that represents a **geographical unit**, you can plot your data on a map. However, in the current format, each row represents a contribution; we do not need that, we need a data frame where each row is a ZIP code, and the amount tells us, for example, the average contribution generated in that location. This is an **aggregation** process:
+
+
+```{r, message=FALSE, eval=TRUE}
+library(dplyr)
+
+
+WA_zip_contri= contriWA_2016  %>%  
+                    group_by(contributor_zip)  %>%  
+                        summarize('AVE_Amount'=mean(amount))
+```
+
+
+
+```{r, eval=TRUE}
+#see result:
+head(WA_zip_contri)
+```
+
+
+
+This data frame has the average of contributions for every zip code.
+
+Our map has also interesting information (check the definitions [here](https://www.ofm.wa.gov/sites/default/files/public/legacy/pop/geographic/metadata/zcta5.html#5)):
+
+```{r, eval=TRUE}
+names(wazipMap)
+```
+
+
+
+The column with the zip code has the name _ZCTA5CE10_, let's check its data type:
+```{r, eval=TRUE}
+str(wazipMap$ZCTA5CE10)
+```
+
+
+Let's turn _contributor_zip_ into a character, to be in the same type as our map data frame:
+
+```{r, eval=TRUE}
+WA_zip_contri$contributor_zip=as.character(WA_zip_contri$contributor_zip)
+```
+
+
+Having common data types in both key columns of each data frame, we can merge. 
+
+
+
+```{r, eval=TRUE}
+# As the zip codes in each are under different column names, 
+# I tell the merge function what columns to use:
+
+layerContrib=merge(wazipMap,WA_zip_contri,  # use map first
+                   by.x='ZCTA5CE10', 
+                   by.y='contributor_zip',all.x=F)
+```
+
+There is a new map: *layerContrib*.
+
+
+We will plot the average amounts contributed, which will be organised into 5 quantiles. Let's follow these steps:
+
+1. Install and load the necessary packages to manage color and divisions:
+
+```{r, eval=TRUE,warning=FALSE,message=FALSE,results='hide'}
+#library(RColorBrewer)
+#library(classInt)
+```
+
+
+2. Define the variable to plot:
+```{r, eval=TRUE}
+varToPLot=layerContrib$AVE_Amount
+```
+
+
+3. Define  color palette. Review the available palettes from [here](http://colorbrewer2.org/)):
+
+```{r, eval=TRUE}
+colorForPalette='YlGnBu'
+```
+
+
+4. Plot the choropleth; notice we are choosing a particular [classification method](https://www.axismaps.com/guide/data/data-classification/) known as _quantile_ classification: 
+
+
+```{r, eval=TRUE}
+
+layer1= waBorder +  
+        tm_shape(layerContrib) +
+                tm_polygons("AVE_Amount", 
+                            style="quantile", # classification method
+                            n=5, # number of groups for classification
+                            title="Contributions", # title of legend
+                            palette=colorForPalette) 
+
+fullMap= layer1 + tm_compass(position = c('left','TOP'),type = 'arrow') +
+                  tm_scale_bar(position=c("RIGHT", "BOTTOM"),width = 0.2)
+
+fullMap
+```
+
+We need to adjust the elements:
+```{r, eval=TRUE}
+fullMap +  tm_layout(main.title = "Choropleth",
+                     main.title.position = 'center',
+                     legend.position = c('RIGHT','center'),
+                                    #bottom,left,top,right
+                     inner.margins=c(0.1,0,0.1,0.2)) 
+    
+```
+
+
+For sure, you can use leaflet:
+
+```{r, eval=TRUE}
+# function for COLORING quantiles in leaflet
+paletteFun=colorQuantile(colorForPalette, 
+                         varToPLot,
+                         n = 5)
+
+# the base map
+base_map = leaflet(baseMap) %>% addPolygons(weight = 3,color = 'red')
+
+final = base_map %>%
+         addPolygons(data=layerContrib,
+                     weight = 1, #thickness of border
+                     opacity =  1, # # the closer to 0 the more transparent
+                     fillOpacity = 0.7, # color brigthness
+                     fillColor = ~paletteFun(AVE_Amount)) # coloring
+
+final
+```
+
+You must add a legend:
+```{r, eval=TRUE}
+final %>% addLegend(data=layerContrib,
+                    "bottomright",
+                    pal = paletteFun, 
+                    values = ~AVE_Amount,
+                    title = "Contributions",
+                    opacity = 1) 
+
+```
+
+The legend shows just percents, to get the actual intervals, you need some hard work:
+
+
+```{r, eval=TRUE}
+final %>% 
+    addLegend(data=layerContrib,
+              "bottomright", 
+              pal = paletteFun,
+              values = ~AVE_Amount,
+              title = "Contributions",
+              opacity = 1,
+              # changes:
+              labFormat = function(type="quantile", cuts, p) {
+              n = length(cuts) # how many
+              lower=round(cuts[-n],2) # intervals
+              upper=round(cuts[-1],2)
+              cuts = paste0(lower, " - ", upper) # new cuts
+              }
+          
+     )
+
+
+```
+
+
+
+## Plotting categories
+
+Imagine you need the bottom and top decile:
+
+```{r, eval=TRUE}
+quantile(layerContrib$AVE_Amount, c(.1,.9))
+```
+
+
+Let me create a map with the values below the 10% quantile:
+
+```{r}
+# getting the value
+bot10=quantile(layerContrib$AVE_Amount, c(.1))
+
+# using the value to filter
+mapBot=layerContrib[layerContrib$AVE_Amount<=bot10,]
+```
+
+
+Now, a map with the values above the 90% quantile:
+
+```{r}
+# getting the value
+top10=quantile(layerContrib$AVE_Amount, c(.9))
+
+# using the value to filter
+mapTop=layerContrib[layerContrib$AVE_Amount>=top10,]
+```
+
+
+The map:
+
+```{r, eval=TRUE}
+
+base= tm_shape(baseMap) + tm_polygons()
+
+layer_1   = base     +  tm_shape(mapTop) + 
+                        tm_polygons(col = 'green',border.col = NULL) 
+
+layer_1_2 = layer_1  +  tm_shape(mapBot) + 
+                        tm_polygons(col = 'red',border.col = NULL) 
+
+fullMap   = layer_1_2 + tm_compass(position = c('left','TOP'),type = 'arrow') +
+                        tm_scale_bar(position=c("RIGHT", "BOTTOM"),width = 0.2)
+
+fullMap
+```
+
+Now we add a legend:
+
+```{r, eval=TRUE}
+fullMap_leg= fullMap + tm_add_legend(type="fill",
+                                     labels=c('good','bad'),
+                                     col=c('green','red'),
+                                     border.col=NA,
+                                     title='to watch')
+fullMap_leg
+```
+
+If you need the legend somewhere else:
+
+```{r, eval=TRUE}
+fullMap_leg + tm_layout(main.title = "Highlights",
+                        main.title.position = 'center',
+                        legend.position = c('RIGHT','center'),
+                                    #bottom,left,top,right
+                        inner.margins=c(0.1,0,0.1,0.2)) 
+```
+
+And a version in leaflet:
+
+```{r, eval=TRUE}
+library(leaflet)
+
+
+base= leaflet() %>% addProviderTiles("CartoDB.Positron") 
+layer1   = base %>%
+              addPolygons(data=mapBot,color='blue',fillOpacity = 1,stroke = F,
+                          group = "Bottom") #name of layer!!
+layer_1_2= layer1%>%
+              addPolygons(data=mapTop,color="red",fillOpacity = 1,stroke = F,
+                          group = "Top")
+
+layer_1_2
+```
+
+Any basic leaflet map allows interaction, but it is tricky to come back to the original situation. This is how you can do it by adding a button (check icons [here](https://fontawesome.com/icons/home?style=solid):
+
+```{r, eval=TRUE}
+# trick: it tell the 'center' of the state and the zoom level
+textFun="function(btn, map){map.setView([47.751076, -120.740135], 7)}"
+
+
+final = layer_1_2 %>%
+                  # adding the button
+                  addEasyButton(easyButton(icon="fa-home", # a symbol
+                                           title="ZOOM BACK",
+                                           onClick=JS(textFun)))
+
+final
+```
+
+We can use an interactive legend:
+
+```{r, eval=TRUE}
+final %>% 
+    addLayersControl(overlayGroups = c("Top", "Bottom"),
+                     options = layersControlOptions(collapsed = FALSE))
+```
+
+
+
+
+
+----
+
+* [Go to page beginning](#toc)
+* [Go to Course schedule](https://ds4ps.org/ddmp-uw-class-spring-2019/schedule/)
+

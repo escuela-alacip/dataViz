@@ -1,0 +1,49 @@
+
+<br> 
+<center><img src="http://i.imgur.com/sSaOozN.png" width="500"></center>
+
+
+## Course: Data-Driven Management and Policy
+
+### Prof. José Manuel Magallanes, PhD 
+
+_____
+
+
+# Session 5 LAB: Intro to Visualization
+
+<a id='toc'></a>
+_____
+
+Contents:
+
+Part 1:
+
+Using Acrobat Reader, open the file **hsb.pdf**, and decide which of those columns are nominal, ordinal or numerical (integer or decimal). Then open the file **hsb.sav**, which is in SPSS format. You can use the library **rio** (function _import_) or **foreign** (function _read.spss_) to open it. Make sure to find out the arguments needed in each function.
+
+
+
+Part 2:
+
+Make two barplots for one nominal variable. The first one should have _title_ and _source_, but no more changes to the default given by ggplot. The second plot should include more customized changes of your choice.
+
+Part 3:
+
+Make two boxplots for one ordinal variable. The first one should have _title_ and _source_, but no more changes to the default given by ggplot. The second plot should include more customized changes of your choice.
+
+Part 4:
+
+Make two histograms for one numerical variable. The first one should have _title_ and _source_, but no more changes to the default given by ggplot. The second plot should include more customized changes of your choice.
+
+Part 5:
+
+Make an alternative plot for the nominal and the numerical variable. Customize it with the elements of your choice. 
+
+Part 6 (For final project):
+
+1. Download the data you have collected from one source.
+2. Input it to R. 
+3. Summarize what you see. Select one variable and create one plot based on what you have.
+
+* [Go to Course schedule](https://ds4ps.org/ddmp-uw-class-spring-2019/schedule/)
+

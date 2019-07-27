@@ -1,0 +1,39 @@
+
+<br> 
+<center><img src="http://i.imgur.com/sSaOozN.png" width="500"></center>
+
+
+## Course: Data-Driven Management and Policy
+
+### Prof. José Manuel Magallanes, PhD 
+
+_____
+
+
+# Session 6 LAB: Spatial and Multivariate Plotting
+
+
+_____
+
+Contents:
+
+Part 1:
+
+Produce a map using tmap.
+In this case, show the zip code where more people gave more cash than in kind
+
+Part 2:
+
+Remake the plot of dimensionality reduction (where the multidemiensional scaling plot cases where colored according to the k-means output). This time, use only the variables that represent **input**.
+
+
+Part 3 (For final project):
+
+Prepare a report of the status of your final project, informing if the data collection process is over.
+
+
+----
+
+* [Go to page beginning](#toc)
+
+
