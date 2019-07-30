@@ -20,26 +20,14 @@ bibliography: reproviz.bib
 En este ejercicio publicaremos en la web una gráfica hecha en R. El gráfico será estático y tendrá los elementos principales.
 
 
-1. **Crear cuenta en RPubs**
 
-* Cree una cuenta es **RPubs** usando este [LINK](https://rpubs.com/users/new).
-* Recuerde su usuario y clave.
-
-2. **Usando Zotero**
-
-* Crea un cuenta [aquí](https://www.zotero.org/user/register).
-* Descargar el [cliente](https://www.zotero.org/download/) de Zotero.
-
-3. **Preparando RStudio**
+1. **Preparando RStudio**
 
 * Instale la librería **citr**.
 * Reinicie RStudio.
 * Cree un nuevo RStudio Notebook.
-* Al inicio del Notebook escribir:
 
-![](https://github.com/escuela-alacip/dataViz/raw/master/pics/yaml.png)
-
-4. **Preparando el gráfico**
+2. **Preparando el gráfico**
 
 * Vayamos a este [link](https://es.wikipedia.org/wiki/Elecciones_parlamentarias_de_Per%C3%BA_de_2016) y descargue la tabla de los congresistas electos.
 
@@ -214,8 +202,32 @@ barp + geom_text(aes(label=conteo),
                  color='gray')
 ```
 
-
 _____
+
+3. **Crear cuenta en RPubs**
+
+* Cree una cuenta es **RPubs** usando este [LINK](https://rpubs.com/users/new).
+* Recuerde su usuario y clave.
+
+4. **Usando Zotero**
+
+* Crea un cuenta [aquí](https://www.zotero.org/user/register).
+* Descargar el [cliente](https://www.zotero.org/download/) de Zotero. 
+
+5. **Preparar reporte**
+
+* Abrir un nuevo RStudio Notebook.
+* Al inicio del Notebook escribir:
+
+![](https://github.com/escuela-alacip/dataViz/raw/master/pics/yaml.png)
+
+* Escribir este texto antes del gráfico: "Aqui presentamos un reporte sobre los resultados de las elecciones congresales del Peru en 2016. La variable analizada es partido. Se le ha analizado como variable nominal."
+
+* Luego de escribir el párrafo anterior, añada la referencia de _Stevens_ luego de la palabra nominal, usando el Addins:
+
+![](https://github.com/escuela-alacip/dataViz/raw/master/pics/Addins.png)
+
+______
 
 **AUSPICIO**: 
 
