@@ -31,7 +31,75 @@ En este ejercicio publicaremos en la web un mapa. Haremos una versión estática
 
 2. **Versión estática**
 
+* Traiga el mapa desde GitHub, necesita tener instaladas las bibliotecas _sp_, _geojsonio_ y _rgdal_:
 
+```{r, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+
+library(sp)
+library(geojsonio)
+library(rgdal)
+
+fromGit="https://github.com/escuela-alacip/dataViz/raw/master/data/seattle.json"
+
+wazipMap <- rgdal::readOGR(fromGit)
+```
+
+Puede ver el mapa aquí:
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+plot(wazipMap)
+```
+
+* Decida qué va a graficar:
+
+El mapa presenta un poligono por cada zipcode. La idea es colorear cada poligono. Normalmente la data que uno desea colorear está en otro archivo. Ese archivo está aquí:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+fromGit2="https://github.com/escuela-alacip/dataViz/raw/master/data/contriWA_2016.RData"
+
+# lo traemos asi:
+load(file=url(fromGit2))
+```
+
+
+Tenemos:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+str(contriWA_2016,width = 60, strict.width = 'cut')
+```
+
+Esta data informa cuánto han contribuido diferentes personas a candidaturas políticas. Está por persona, NO por ZIP, entonces haremos un cálculo por zip. Por ejemplo, el promedio contribuido por zip:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+# similar and saving space:
+columnToAggregate=contriWA_2016$amount
+
+# new ROW:
+newROW_UNIT=list(zipCode=contriWA_2016$contributor_zip)
+
+WA_zip_contri=with(contriWA_2016, 
+                   aggregate(columnToAggregate, 
+                             by=newROW_UNIT, 
+                             mean)) #mean per zip code 
+
+names(WA_zip_contri)[2]='AVE_Amount'
+# obteniendo:
+
+head(WA_zip_contri)
+```
+
+* Combine la información con el mapa:
+
+Nuestro mapa tiene estas variables:
+
+```{r}
+names(wazipMap)
+```
+
+El zip code de cada poligono está en _ZCTA5CE10_. Esa servirá para el _merge_:
+
+```{r}
+merge(wazipMap,WA_zip_contri,by.x='ZCTA5CE10', by.y='zipCode')
+```
 
 
 ______
