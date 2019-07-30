@@ -58,8 +58,31 @@ str(congreso)
 ```
 
 * Verificar que no haya numeros de columnas repetidos.
-```{r}
+```{r, eval=TRUE, warning=FALSE}
 congresoOK=congreso[,-c(3)]
+```
+
+* Preparar estructura de datos: La tabla de frequencia debe ser un data frame:
+
+```{r, eval=TRUE, warning=FALSE}
+# de:
+table(congresoOK$Partido)
+```
+```{r, eval=TRUE, warning=FALSE}
+# a:
+
+##guardar valores
+TableFA=table(congresoOK$Partido)
+
+# get vectors for columns:
+VALUES=names(TableFA)
+FREQUENCIES=as.vector(TableFA)
+
+# A data frame from those vectors:
+congresoOK_DF=data.frame(partido=VALUES,   
+                         conteo=FREQUENCIES)
+# obtuviste:
+congresoOK_DF
 ```
 
 * Graficar la variable **Partido**.
@@ -74,31 +97,52 @@ b. Decidir tipo de gráfico:
     - Si es Ordinal: Las anteriores y de "Cajas y Bigotes" (_Boxplot_). Nunca reordenar eje X.
     - Si es numerica: Boxplot e Histograma.
 
+_____
+
+
 Aqui tenemos la solución inicial usando la biblioteca _ggplot2_:
-```{r}
+```{r, eval=TRUE, warning=FALSE}
 # verificado si funciona:
 
 library(ggplot2)
-base=ggplot(congresoOK,aes(x=Partido))
-base + geom_bar()
+base=ggplot(congresoOK_DF,aes(x=partido,y=conteo))
+base + geom_bar(stat = 'identity')
 ```
 
-Para reordenar, como se sugirió, la manera mas sencilla es usar la librería _forcats_:
+Para reordenar, como se sugirió, hacemos:
 
-```{r}
+```{r, eval=TRUE, warning=FALSE}
+# REORDENANDO
+congresoOK_DF_Ord=congresoOK_DF[order(-congresoOK_DF$conteo),]
 
-library(forcats)
+#POSICIONES ORDENADAS
+WHERE=congresoOK_DF_Ord$partido
 
-base=ggplot(congresoOK,aes(x=fct_infreq(Partido)))
-barp=base + geom_bar()
+
+base=ggplot(congresoOK_DF_Ord,aes(x=partido,y=conteo))
+barp=base + geom_bar(stat = 'identity') + 
+            scale_x_discrete(limits=WHERE) # NECESARIO
 barp
 ```
 
+_____
+
+c. Colorear. Mientras menos [color](http://sape.inf.usi.ch/sites/default/files/ggplot2-colour-names.png) mejor. 
+
+```{r, eval=TRUE, warning=FALSE}
+barp= base + geom_bar(stat='identity',
+                      fill ='white', color='black') + 
+             scale_x_discrete(limits=WHERE)
+
+barp=barp + theme_classic()
+
+barp
+```
 ____
 
-c. Titular: Los titulos de los ejes salen por defecto, hay que modificar. Decidir título, tal que el gráfico sea la respuesta.
+d. Titular: Los titulos de los ejes salen por defecto, hay que modificar. Decidir título, tal que el gráfico sea la respuesta.
 
-```{r}
+```{r, eval=TRUE, warning=FALSE}
 text1="¿Tenemos un Congreso competitivo?"
 text2="Partidos"
 text3="Conteo"
@@ -112,26 +156,19 @@ barp
 
 ```
 
-d. Colorear. Mientras menos color mejor.
 
-```{r}
-barp= base + geom_bar(fill ='white', color='black')
-barp= barp + labs(title=text1,
-            x =text2, 
-            y = text3,
-            caption = text4)
-barp=barp + theme_classic()
-barp
-```
 
 _____
 
 e. Corregir detalles:
 
-```{r}
+```{r, eval=TRUE, warning=FALSE,message=FALSE}
+library(stringr)
 barp= barp + theme(plot.caption = element_text(hjust = 0),
-                   plot.title = element_text(hjust = 0.5),
-                   axis.text.x = element_text(angle=45,hjust = 1))
+                   plot.title = element_text(hjust = 0.5,size=15),
+                   axis.text.x = element_text(angle=45,hjust = 1)) + 
+             scale_x_discrete(limits=WHERE,
+                              labels=function(x) str_wrap(x, width = 10))
 
 barp
 
@@ -143,32 +180,38 @@ f. Decidir si se necesita anotaciones:
 
     - Lineas de referencia
 
-```{r}
+```{r, eval=TRUE, warning=FALSE}
 barp= barp + annotate("segment", 
                       x = 0, y = 66,xend = 6.5, yend = 66,
                       linetype=2,
-                      colour = "blue") +
-             annotate("text", label = "UMBRAL DE MAYORIA ABSOLUTA",
-                      x = 4, y = 70, 
-                      size = 3, 
-                      colour = "red")
+                      colour = "blue") 
 
 barp
 ```
 
     - Textos aclarativos:
 
-```{r}
-barp= barp + annotate("text", label = "PARTIDO\nOPOSITOR",
+```{r, eval=TRUE, warning=FALSE}
+barp= barp + annotate("text", label = "UMBRAL DE MAYORIA ABSOLUTA",
+                      x = 4, y = 70, 
+                      size = 3, 
+                      colour = "grey") +
+             annotate("text", label = "PARTIDO\nOPOSITOR",
                       x = 1, y = 40, 
                       size = 3,fontface =2,
-                      colour = "red") +
+                      colour = "grey40") +
              annotate("text", label = "PARTIDO\nDE\nGOBIERNO",
                       x = 3, y = 10, 
                       size = 3,fontface =2,
-                      colour = "red")
+                      colour = "grey40")
 
-barp
+barp 
+```
+```{r, eval=TRUE, warning=FALSE}
+barp + geom_text(aes(label=conteo),
+                 vjust='bottom',nudge_y=1,
+                 size=3,
+                 color='gray')
 ```
 
 
