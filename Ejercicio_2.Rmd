@@ -15,7 +15,7 @@ bibliography: reproviz.bib
     - Fellow Catalyst, **Berkeley Initiative for Transparency in Social Sciences, UC Berkeley**.
 
 
-## De R a la web
+## De R a la web: Caso Univariado.
 
 En este ejercicio publicaremos en la web una gráfica hecha en R. El gráfico será estático y tendrá los elementos principales.
 
@@ -37,92 +37,135 @@ En este ejercicio publicaremos en la web una gráfica hecha en R. El gráfico se
 * Cree un nuevo RStudio Notebook.
 * Al inicio del Notebook escribir:
 
+![](https://github.com/escuela-alacip/dataViz/raw/master/pics/yaml.png)
+
+4. **Preparando el gráfico**
+
+* Vayamos a este [link](https://es.wikipedia.org/wiki/Elecciones_parlamentarias_de_Per%C3%BA_de_2016) y descargue la tabla de los congresistas electos.
+
+```{r, echo=TRUE, eval=TRUE}
+library(htmltab)
+
+url= "https://es.wikipedia.org/wiki/Elecciones_parlamentarias_de_Per%C3%BA_de_2016" 
+
+xpathTabla='//*[@id="mw-content-text"]/div/table[6]/tbody/tr/td/table/tbody'
 
 
-4. 
+congreso = htmltab(doc = url, 
+                   which = xpathTabla) 
 
-
-Crear un nuevo RStudio y escribir esto en el encabezado:
-
-
-
-Google Drive es útil si tenemos un archivo en CSV o Excel:
-
-* Convertirlo a Hoja de Cálculo de Google [@gower_general_1971-2].
-* Publicarlos como CSV (elegir qué página si fuera originalmente un Excel).
-* Utilizar el link en R.
-
-Suba el archivo en Excel a GoogleDrive, y use el link creado aquí:
-
-```{r, echo=TRUE, eval=FALSE}
-linkGoogleExcel=''
-dataGoogleExcel=read.csv(linkGoogleExcel)
-names(dataGoogleExcel)
+str(congreso)
 ```
 
-Suba el archivo en CSV a GoogleDrive, y use el link creado aquí:
-
-```{r, echo=TRUE, eval=FALSE}
-linkGoogleCSV=''
-dataGoogleExcel=read.csv(linkGoogleCSV)
-names(linkGoogleCSV)
+* Verificar que no haya numeros de columnas repetidos.
+```{r}
+congresoOK=congreso[,-c(3)]
 ```
 
+* Graficar la variable **Partido**.
 
-Otros tipos de archivos no pueden leerse directamente.
+a. Decidir escala de medicion: la variable partido está en escala nominal.
 
-2. R con Dropbox
-![](https://aem.dropbox.com/cms/content/dam/dropbox/www/en-us/branding/app-dropbox-windows@2x.png)
+______
 
-* Copiar el link de dropbox. 
-* Asegurarse de cambiar el link hacia **dl=1**
+b. Decidir tipo de gráfico:
 
+    - Si es Nominal: Barras y "Chupetin" (_Lollipop_), pero *reordenando* eje X por altura en eje Y. Evitar gráficos circulares (_Pieplot_).
+    - Si es Ordinal: Las anteriores y de "Cajas y Bigotes" (_Boxplot_). Nunca reordenar eje X.
+    - Si es numerica: Boxplot e Histograma.
 
-Suba el archivo en Excel a Dropbox, instale la librería **rio**, y use el link creado aquí:
+Aqui tenemos la solución inicial usando la biblioteca _ggplot2_:
+```{r}
+# verificado si funciona:
 
-```{r, echo=TRUE, eval=FALSE}
-library(rio)
-linkDropboxExcel=''
-dataDropboxExcel=import(linkDropboxExcel)
-names(dataDropboxExcel)
+library(ggplot2)
+base=ggplot(congresoOK,aes(x=Partido))
+base + geom_bar()
 ```
 
-Suba el archivo en SPSS a Dropbox, instale la librería **rio**, y use el link creado aquí:
+Para reordenar, como se sugirió, la manera mas sencilla es usar la librería _forcats_:
 
-```{r, echo=TRUE, eval=FALSE}
-library(rio)
-linkDropboxSPSS=''
-dataDropboxExcel=import(linkDropboxSPSS)
-names(linkDropboxSPSS)
+```{r}
+
+library(forcats)
+
+base=ggplot(congresoOK,aes(x=fct_infreq(Partido)))
+barp=base + geom_bar()
+barp
 ```
 
+____
 
-3. R con GitHub
+c. Titular: Los titulos de los ejes salen por defecto, hay que modificar. Decidir título, tal que el gráfico sea la respuesta.
 
-![](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png)
+```{r}
+text1="¿Tenemos un Congreso competitivo?"
+text2="Partidos"
+text3="Conteo"
+text4="Fuente: Wikipedia"
 
-* Crear una cuenta en Github.
-* Subir los archivos deseados. Se puede hacer directamente desde la web, pero es mejor acostumbrarse a hacerlo con el cliente (GitHub Desktop).
-* Si el archivo fuera CSV, elegir la ruta al **raw**; de lo contrario, elegir el link del **download**.
+barp= barp + labs(title=text1,
+            x =text2, 
+            y = text3,
+            caption = text4) 
+barp
 
-
-Suba el archivo en Excel a GitHub, instale la librería **rio**, y use el link creado aquí:
-
-```{r, echo=TRUE, eval=FALSE}
-library(rio)
-linkGitHubExcel=''
-dataGitHubExcel=import(linkGitHubExcel)
-names(dataGitHubExcel)
 ```
 
-Suba el archivo en SPSS a GitHub, instale la librería **rio**, y use el link creado aquí:
+d. Colorear. Mientras menos color mejor.
 
-```{r, echo=TRUE, eval=FALSE}
-library(rio)
-linkGitHubSPSS=''
-dataGitHubSPSS=import(linkGitHubSPSS)
-names(dataGitHubSPSS)
+```{r}
+barp=barp + theme_classic()
+barp
 ```
+
+_____
+
+e. Corregir detalles:
+
+```{r}
+barp= barp + theme(plot.caption = element_text(hjust = 0),
+                   plot.title = element_text(hjust = 0.5),
+                   axis.text.x = element_text(angle=45,hjust = 1))
+
+barp
+
+```
+
+_____
+
+f. Decidir si se necesita anotaciones:
+
+    - Lineas de referencia
+
+```{r}
+barp= barp + annotate("segment", 
+                      x = 0, y = 66,xend = 6.5, yend = 66,
+                      linetype=2,
+                      colour = "blue") +
+             annotate("text", label = "UMBRAL DE MAYORIA ABSOLUTA",
+                      x = 4, y = 70, 
+                      size = 3, 
+                      colour = "red")
+
+barp
+```
+
+    - Textos aclarativos:
+
+```{r}
+barp= barp + annotate("text", label = "PARTIDO\nOPOSITOR",
+                      x = 1, y = 40, 
+                      size = 3,
+                      colour = "white") +
+             annotate("text", label = "PARTIDO\nDE\nGOBIERNO",
+                      x = 3, y = 10, 
+                      size = 3,
+                      colour = "white")
+
+barp
+```
+
 
 _____
 
