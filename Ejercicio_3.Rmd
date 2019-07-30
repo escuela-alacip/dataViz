@@ -15,7 +15,7 @@ bibliography: reproviz.bib
     - Fellow Catalyst, **Berkeley Initiative for Transparency in Social Sciences, UC Berkeley**.
 
 
-## De R a la web: Caso Univariado.
+## De R a la web: Caso Espacial.
 
 En este ejercicio publicaremos en la web una gráfica hecha en R. El gráfico será estático y tendrá los elementos principales.
 

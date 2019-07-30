@@ -49,11 +49,11 @@ Otros tipos de archivos no pueden leerse directamente.
 2. R con Dropbox
 ![](https://aem.dropbox.com/cms/content/dam/dropbox/www/en-us/branding/app-dropbox-windows@2x.png)
 
+* Suba los archivos a Dropbox.
 * Copiar el link de dropbox. 
-* Asegurarse de cambiar el link hacia **dl=1**
 
 
-Suba el archivo en Excel a Dropbox, instale la librería **rio**, y use el link creado aquí:
+Lea el archivo en Excel que tiene en Dropbox, instale la librería **rio**, y use el link creado. Asegurarse de cambiar el link hacia **dl=1**.
 
 ```{r, echo=TRUE, eval=FALSE}
 library(rio)
@@ -62,7 +62,8 @@ dataDropboxExcel=import(linkDropboxExcel)
 names(dataDropboxExcel)
 ```
 
-Suba el archivo en SPSS a Dropbox, instale la librería **rio**, y use el link creado aquí:
+
+Lea el archivo en SPSS que tiene en Dropbox, instale la librería **rio**, y use el link creado. Asegurarse de cambiar el link hacia **dl=1**.
 
 ```{r, echo=TRUE, eval=FALSE}
 library(rio)
