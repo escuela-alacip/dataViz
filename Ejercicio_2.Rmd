@@ -1,0 +1,165 @@
+---
+bibliography: reproviz.bib
+---
+
+<center><img src="http://alacip.org/wp-content/uploads/2014/03/logoEscalacip1.png" width="500"></center>
+
+
+<center> <h1>Curso: Visualización de Datos con enfoque reproducible de Data Science</h1> </center>
+
+<br></br>
+
+* Profesor:  <a href="http://www.pucp.edu.pe/profesor/jose-manuel-magallanes/" target="_blank">Dr. José Manuel Magallanes, PhD</a> ([jmagallanes@pucp.edu.pe](mailto:jmagallanes@pucp.edu.pe))<br>
+    - Profesor del **Departamento de Ciencias Sociales, Pontificia Universidad Católica del Peru**.<br>
+    - Senior Data Scientist del **eScience Institute** and Visiting Professor at **Evans School of Public Policy and Governance, University of Washington**.<br>
+    - Fellow Catalyst, **Berkeley Initiative for Transparency in Social Sciences, UC Berkeley**.
+
+
+## De R a la web
+
+En este ejercicio publicaremos en la web una gráfica hecha en R. El gráfico será estático y tendrá los elementos principales.
+
+
+1. **Crear cuenta en RPubs**
+
+* Cree una cuenta es **RPubs** usando este [LINK](https://rpubs.com/users/new).
+* Recuerde su usuario y clave.
+
+2. **Usando Zotero**
+
+* Crea un cuenta [aquí](https://www.zotero.org/user/register).
+* Descargar el [cliente](https://www.zotero.org/download/) de Zotero.
+
+3. **Preparando RStudio**
+
+* Instale la librería **citr**.
+* Reinicie RStudio.
+* Cree un nuevo RStudio Notebook.
+* Al inicio del Notebook escribir:
+
+
+
+4. 
+
+
+Crear un nuevo RStudio y escribir esto en el encabezado:
+
+
+
+Google Drive es útil si tenemos un archivo en CSV o Excel:
+
+* Convertirlo a Hoja de Cálculo de Google [@gower_general_1971-2].
+* Publicarlos como CSV (elegir qué página si fuera originalmente un Excel).
+* Utilizar el link en R.
+
+Suba el archivo en Excel a GoogleDrive, y use el link creado aquí:
+
+```{r, echo=TRUE, eval=FALSE}
+linkGoogleExcel=''
+dataGoogleExcel=read.csv(linkGoogleExcel)
+names(dataGoogleExcel)
+```
+
+Suba el archivo en CSV a GoogleDrive, y use el link creado aquí:
+
+```{r, echo=TRUE, eval=FALSE}
+linkGoogleCSV=''
+dataGoogleExcel=read.csv(linkGoogleCSV)
+names(linkGoogleCSV)
+```
+
+
+Otros tipos de archivos no pueden leerse directamente.
+
+2. R con Dropbox
+![](https://aem.dropbox.com/cms/content/dam/dropbox/www/en-us/branding/app-dropbox-windows@2x.png)
+
+* Copiar el link de dropbox. 
+* Asegurarse de cambiar el link hacia **dl=1**
+
+
+Suba el archivo en Excel a Dropbox, instale la librería **rio**, y use el link creado aquí:
+
+```{r, echo=TRUE, eval=FALSE}
+library(rio)
+linkDropboxExcel=''
+dataDropboxExcel=import(linkDropboxExcel)
+names(dataDropboxExcel)
+```
+
+Suba el archivo en SPSS a Dropbox, instale la librería **rio**, y use el link creado aquí:
+
+```{r, echo=TRUE, eval=FALSE}
+library(rio)
+linkDropboxSPSS=''
+dataDropboxExcel=import(linkDropboxSPSS)
+names(linkDropboxSPSS)
+```
+
+
+3. R con GitHub
+
+![](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png)
+
+* Crear una cuenta en Github.
+* Subir los archivos deseados. Se puede hacer directamente desde la web, pero es mejor acostumbrarse a hacerlo con el cliente (GitHub Desktop).
+* Si el archivo fuera CSV, elegir la ruta al **raw**; de lo contrario, elegir el link del **download**.
+
+
+Suba el archivo en Excel a GitHub, instale la librería **rio**, y use el link creado aquí:
+
+```{r, echo=TRUE, eval=FALSE}
+library(rio)
+linkGitHubExcel=''
+dataGitHubExcel=import(linkGitHubExcel)
+names(dataGitHubExcel)
+```
+
+Suba el archivo en SPSS a GitHub, instale la librería **rio**, y use el link creado aquí:
+
+```{r, echo=TRUE, eval=FALSE}
+library(rio)
+linkGitHubSPSS=''
+dataGitHubSPSS=import(linkGitHubSPSS)
+names(dataGitHubSPSS)
+```
+
+_____
+
+**AUSPICIO**: 
+
+* El desarrollo de estos contenidos ha sido posible gracias al grant del Berkeley Initiative for Transparency in the Social Sciences (BITSS) at the Center for Effective Global Action (CEGA) at the University of California, Berkeley
+
+
+<center>
+<img src="https://www.bitss.org/wp-content/uploads/2015/07/bitss-55a55026v1_site_icon.png" style="width: 200px;"/>
+</center>
+
+* Este curso cuenta con el auspicio de:
+
+
+<center>
+<img src="https://www.python.org/static/img/psf-logo@2x.png" style="width: 500px;"/>
+</center>
+
+
+
+**RECONOCIMIENTO**
+
+
+EL Dr. Magallanes agradece a la Pontificia Universidad Católica del Perú, por su apoyo en la participación en la Escuela ALACIP.
+
+<center>
+<img src="https://dci.pucp.edu.pe/wp-content/uploads/2014/02/Logotipo_colores-290x145.jpg" style="width: 400px;"/>
+</center>
+
+
+El autor reconoce el apoyo que el eScience Institute de la Universidad de Washington le ha brindado desde el 2015 para desarrollar su investigación en Ciencia de Datos.
+
+<center>
+<img src="https://escience.washington.edu/wp-content/uploads/2015/10/eScience_Logo_HR.png" style="width: 500px;"/>
+</center>
+
+<br>
+
+# References
