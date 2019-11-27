@@ -222,17 +222,21 @@ _____
 * Abrir un nuevo RStudio Notebook.
 * Al inicio del Notebook escribir:
 
-![](https://github.com/escuela-alacip/dataViz/raw/master/pics/yaml.png)
+<img src="https://github.com/escuela-alacip/dataViz/raw/master/pics/yaml.png" width="200">
+
 
 * Escribir este texto antes del gráfico: "Aqui presentamos un reporte sobre los resultados de las elecciones congresales del Peru en 2016. La variable analizada es partido. Se le ha analizado como variable nominal."
 
 * Luego de escribir el párrafo anterior, añada la referencia de _Stevens_ luego de la palabra nominal, usando el Addins:
 
-![](https://github.com/escuela-alacip/dataViz/raw/master/pics/Addins.png)
+<img src="https://github.com/escuela-alacip/dataViz/raw/master/pics/Addins.png" width="200">
+
 
 * Luego del párrafo, ponga la gráfica.
 
 * Al final de todo escriba '# References'.
+
+* *Knitear* el resultado, y publicarlo en RPubs.
 
 
 ______
@@ -244,13 +248,6 @@ ______
 
 <center>
 <img src="https://www.bitss.org/wp-content/uploads/2015/07/bitss-55a55026v1_site_icon.png" style="width: 200px;"/>
-</center>
-
-* Este curso cuenta con el auspicio de:
-
-
-<center>
-<img src="https://www.python.org/static/img/psf-logo@2x.png" style="width: 500px;"/>
 </center>
 
 

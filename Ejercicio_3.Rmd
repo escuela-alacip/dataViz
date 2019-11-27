@@ -33,7 +33,7 @@ En este ejercicio publicaremos en la web un mapa. Haremos una versión estática
 
 * Traiga el mapa desde GitHub, necesita tener instaladas las bibliotecas _sp_, _geojsonio_ y _rgdal_:
 
-```{r, echo=TRUE, eval=TRUE, message=FALSE, warning=FALSE}
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE,results='hide'}
 
 library(sp)
 library(geojsonio)
@@ -41,7 +41,7 @@ library(rgdal)
 
 fromGit="https://github.com/escuela-alacip/dataViz/raw/master/data/seattle.json"
 
-wazipMap <- rgdal::readOGR(fromGit)
+wazipMap <- rgdal::readOGR(fromGit,stringsAsFactors = FALSE)
 ```
 
 Puede ver el mapa aquí:
@@ -49,9 +49,9 @@ Puede ver el mapa aquí:
 plot(wazipMap)
 ```
 
-* Decida qué va a graficar:
+* Decide qué vas a graficar:
 
-El mapa presenta un poligono por cada zipcode. La idea es colorear cada poligono. Normalmente la data que uno desea colorear está en otro archivo. Ese archivo está aquí:
+El mapa presenta un polígono por cada zipcode. La idea es colorear cada polígono. Normalmente la data que uno desea colorear está en otro archivo. Ese archivo está aquí:
 
 ```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 fromGit2="https://github.com/escuela-alacip/dataViz/raw/master/data/contriWA_2016.RData"
@@ -82,8 +82,8 @@ WA_zip_contri=with(contriWA_2016,
                              mean)) #mean per zip code 
 
 names(WA_zip_contri)[2]='AVE_Amount'
-# obteniendo:
 
+# obteniendo:
 head(WA_zip_contri)
 ```
 
@@ -91,18 +91,270 @@ head(WA_zip_contri)
 
 Nuestro mapa tiene estas variables:
 
-```{r}
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
 names(wazipMap)
 ```
 
 El zip code de cada poligono está en _ZCTA5CE10_. Esa servirá para el _merge_:
 
-```{r}
-merge(wazipMap,WA_zip_contri,by.x='ZCTA5CE10', by.y='zipCode')
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+layerContrib=merge(wazipMap,WA_zip_contri,by.x='ZCTA5CE10', by.y='zipCode',all.x=F)
 ```
 
 
-______
+Pensemos en este mapa resultante como una _capa_. Por lo tanto, creemos una capa base, que sólo sean los límites del mapa:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+library(rmapshaper)
+# This will make just a border of the state
+baseMap <- ms_dissolve(wazipMap)
+```
+
+La base será:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+plot(baseMap)
+```
+
+
+Sobre esta base graficaremos la variable. La variable la organizaremos en cinco intervalos.
+
+a. Instalemos las librerías que nos permitan seleccionar el color y crear los intervalos:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+library(RColorBrewer)
+#library(classInt)
+```
+
+
+b. Definamos la variable a graficar:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+varToPLot=layerContrib$AVE_Amount
+```
+
+c. Crear la secuencia de colores usando una [paleta](http://colorbrewer2.org/):
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+numberOfClasses = 5
+
+colorForScale='YlGnBu'
+
+colors = brewer.pal(numberOfClasses, colorForScale)
+```
+
+
+e. Producir el gráfico. Notese que los intervalos se producen con un  [método de clasificación](https://www.axismaps.com/guide/data/data-classification/) conocido como _quantile classification_: 
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+library(tmap)
+
+creditsText="EPSG:4326 - Proj=longlat - datum=WGS84"
+
+base= tm_shape(baseMap,projection = "longlat") + tm_polygons(col = 'black')
+
+layer1= base +  tm_shape(layerContrib) + 
+                tm_polygons("AVE_Amount", 
+                            style="quantile",n=5,
+                            title="Contributions", # titulo para legenda
+                            palette=colorForScale,
+                            border.alpha = 0.2) 
+
+fullMap= layer1 + tm_compass(position = c('left','TOP'),type = 'arrow') +
+                  tm_scale_bar(position=c("RIGHT", "BOTTOM"),width = 0.2)+
+                  tm_credits(creditsText, position=c("left", "bottom")) 
+
+fullMap
+```
+
+Ajustando posiciones:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+
+fullMap +  tm_layout(main.title = "Choropleth",
+                     main.title.position = 'center',
+                     legend.position = c('RIGHT','center'),
+                                    #bottom,left,top,right
+                     inner.margins=c(0.1,0,0.1,0.2)) # para ganar espacio
+    
+```
+
+En vez de crear intervalos, podríamos usar los valores de la variable a graficar para definir ciertos grupos. Por ejemplo, podria identificar el decile más alto y el más bajo:
+
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+quantile(layerContrib$AVE_Amount, c(.1,.9))
+```
+
+
+Entonces, puedo graficar sólo los grupos que cumplan con una condición:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+#filtros:
+top10=quantile(layerContrib$AVE_Amount, c(.9))
+bot10=quantile(layerContrib$AVE_Amount, c(.1))
+
+#nuevos Mapas!
+mapBot=layerContrib[layerContrib$AVE_Amount<=bot10,]
+mapTop=layerContrib[layerContrib$AVE_Amount>=top10,]
+    
+```
+
+Ahora, usemos esos nuevos mapas como capas:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+###
+legendText="Areas to watch"
+shrinkLegend=0.4
+title="Top and Bottom Average Contribution to elections in WA (2009-2023)"
+###
+
+base= tm_shape(baseMap,projection = 'longlat') + tm_polygons(border.alpha = 0)
+
+layer_1= base +  tm_shape(mapTop) + 
+                tm_polygons(col = 'green',border.col = NULL) 
+
+layer_1_2= layer_1 + tm_shape(mapBot) + 
+                tm_polygons(col = 'red',border.col = NULL) 
+
+fullMap= layer_1_2 + tm_compass(position = c('left','TOP'),type = 'arrow') +
+                  tm_scale_bar(position=c("RIGHT", "BOTTOM"),width = 0.2)+
+                  tm_credits(creditsText, position=c("left", "bottom"))
+
+fullMap
+```
+
+Añadiendo leyenda:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+
+fullMap_leg= fullMap + tm_add_legend(type="fill",
+                                     labels=c('good','bad'),
+                                     col=c('green','red'),
+                                     border.col=NA,
+                                     title='to watch')
+fullMap_leg
+```
+
+Acomodando posiciones:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+
+fullMap_leg + tm_layout(main.title = "Highlights",
+                        main.title.position = 'center',
+                        legend.position = c('RIGHT','center'),
+                                    #bottom,left,top,right
+                        inner.margins=c(0.1,0,0.1,0.2)) 
+```
+
+
+
+3. **Versión interáctiva**
+
+Necesitaremos usar _leflet_.
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+library(leaflet)
+
+# color segun valor
+paletteFun=colorQuantile("YlGnBu", 
+                         varToPLot,
+                         n = 5)
+
+# the base map
+base= leaflet() %>% addTiles()
+
+final = base %>% 
+         addPolygons(data=layerContrib,
+                     weight = 1, #anchura de brde
+                     opacity =  1, # 0 transparencia total
+                     fillOpacity = 0.5, # contraste de paleta
+                     fillColor = ~paletteFun(AVE_Amount)) # coloreando
+
+final
+```
+
+Añadiendo leyenda:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+final %>% addLegend(data=layerContrib,
+                    "bottomright",
+                    pal = paletteFun, 
+                    values = ~AVE_Amount,
+                    title = "Contributions",
+                    opacity = 1) 
+
+```
+
+Los valores por defecto salen como porcentaje, podemos ajustar ello:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+final %>% addLegend(data=layerContrib,"bottomright", 
+                    pal = paletteFun, 
+                    values = ~AVE_Amount,
+                    title = "Contributions",
+                    opacity = 1,
+                    # changes:
+                    labFormat = function(type="quantile", cuts, p) {
+                        n = length(cuts) # cuantas
+                        lower=round(cuts[-n],2) # intervalos
+                        upper=round(cuts[-1],2)
+                        cuts = paste0(lower, " - ", upper) # nuevos limites
+                        }
+     )
+
+
+```
+
+De igual manera, podemos usar los nuevos mapas para solo colorear grupos particulares:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+
+base= leaflet() %>% addProviderTiles("CartoDB.Positron") 
+layer1= base %>%
+        addPolygons(data=mapBot,
+                    color='blue',
+                    fillOpacity = 1,
+                    stroke = F, # sin borde del poligono
+                    group = "Bottom") # nombre
+
+layer_1_2= layer1%>%addPolygons(data=mapTop,
+                                color="red",
+                                fillOpacity = 1,
+                                group = "Top")
+
+layer_1_2
+```
+
+A esta altura quizas te hayas dado cuenta que es dificil regresar al mapa inicial si has usado el zoom. Podemos añadir un botón para ello:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+
+# indicando centro
+textFun="function(btn, map){map.setView([47.751076, -120.740135], 7)}"
+
+final= layer_1_2 %>%
+    # adding the button
+    addEasyButton(
+        easyButton(icon="fa-home", # a symbol
+                   title="Zoom to Level 1",
+                   onClick=JS(textFun)))
+
+final
+```
+
+Ahora podemos tener una leyenda interactiva:
+
+```{r, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+
+final %>% addLayersControl(
+        overlayGroups = c("Top", "Bottom"),
+        options = layersControlOptions(collapsed = FALSE))
+```
+
+**Guarde sus mapas en uno o más archivos en RPubs**.
+
+____
 
 **AUSPICIO**: 
 
@@ -111,13 +363,6 @@ ______
 
 <center>
 <img src="https://www.bitss.org/wp-content/uploads/2015/07/bitss-55a55026v1_site_icon.png" style="width: 200px;"/>
-</center>
-
-* Este curso cuenta con el auspicio de:
-
-
-<center>
-<img src="https://www.python.org/static/img/psf-logo@2x.png" style="width: 500px;"/>
 </center>
 
 
@@ -137,6 +382,3 @@ El autor reconoce el apoyo que el eScience Institute de la Universidad de Washin
 <center>
 <img src="https://escience.washington.edu/wp-content/uploads/2015/10/eScience_Logo_HR.png" style="width: 500px;"/>
 </center>
-
-<br>
-

@@ -18,7 +18,8 @@ En este ejercicio queremos promover que tus archivos no sean leídos desde tu m�
 
 1. **R con GoogleDrive**
 
-![](https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Google_Drive_logo.svg/245px-Google_Drive_logo.svg.png)
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Google_Drive_logo.svg/245px-Google_Drive_logo.svg.png" width="200">
+
 
 
 Google Drive es útil si tenemos un archivo en CSV o Excel:
@@ -46,8 +47,10 @@ names(linkGoogleCSV)
 
 Otros tipos de archivos no pueden leerse directamente.
 
-2. R con Dropbox
-![](https://aem.dropbox.com/cms/content/dam/dropbox/www/en-us/branding/app-dropbox-windows@2x.png)
+2. **R con Dropbox**
+
+<img src="https://aem.dropbox.com/cms/content/dam/dropbox/www/en-us/branding/app-dropbox-windows@2x.png" width="200">
+
 
 * Suba los archivos a Dropbox.
 * Copiar el link de dropbox. 
@@ -73,9 +76,10 @@ names(linkDropboxSPSS)
 ```
 
 
-3. R con GitHub
+3. **R con GitHub**
 
-![](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png)
+<img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="200">
+
 
 * Crear una cuenta en Github.
 * Subir los archivos deseados. Se puede hacer directamente desde la web, pero es mejor acostumbrarse a hacerlo con el cliente (GitHub Desktop).
@@ -111,12 +115,6 @@ _____
 <img src="https://www.bitss.org/wp-content/uploads/2015/07/bitss-55a55026v1_site_icon.png" style="width: 200px;"/>
 </center>
 
-* Este curso cuenta con el auspicio de:
-
-
-<center>
-<img src="https://www.python.org/static/img/psf-logo@2x.png" style="width: 500px;"/>
-</center>
 
 
 

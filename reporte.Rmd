@@ -1,0 +1,30 @@
+---
+bibliography: reproviz.bib
+---
+
+
+Aqui presentamos un reporte sobre los resultados de las elecciones congresales del Peru en 2016. La variable analizada es partido. Se le ha analizado como variable nominal[@gower_general_1971].
+
+```{r, echo=FALSE, eval=TRUE, warning=FALSE}
+library(htmltab)
+
+url= "https://es.wikipedia.org/wiki/Elecciones_parlamentarias_de_Per%C3%BA_de_2016" 
+xpathTabla='//*[@id="mw-content-text"]/div/table[6]/tbody/tr/td/table/tbody'
+congreso = htmltab(doc = url, 
+                   which = xpathTabla) 
+congresoOK=congreso[,-c(3)] # eliminé
+##guardar valores
+TableFA=table(congresoOK$Partido)
+# get vectors for columns:
+VALUES=names(TableFA)
+FREQUENCIES=as.vector(TableFA)
+# A data frame from those vectors:
+congresoOK_DF=data.frame(partido=VALUES,   
+                         conteo=FREQUENCIES)
+library(ggplot2)
+base=ggplot(congresoOK_DF,aes(x=partido,y=conteo))
+base + geom_bar(stat = 'identity')
+```
+
+
+# References
