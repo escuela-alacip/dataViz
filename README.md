@@ -7,6 +7,7 @@
 
 * Profesor:  <a href="http://www.pucp.edu.pe/profesor/jose-manuel-magallanes/" target="_blank">Dr. José Manuel Magallanes, PhD</a> ([jmagallanes@pucp.edu.pe](mailto:jmagallanes@pucp.edu.pe))<br>
     - Profesor del **Departamento de Ciencias Sociales, Pontificia Universidad Católica del Peru**.<br>
+    - Coordinador del <a href="https://investigacion.pucp.edu.pe/grupos/GI3P/" target="_blank">GI3P</a> (Grupo Interdisciplinario de Prospectiva en Políticas Públicas).
     - Senior Data Scientist del **eScience Institute** and Visiting Professor at **Evans School of Public Policy and Governance, University of Washington**.<br>
     - Fellow Catalyst, **Berkeley Initiative for Transparency in Social Sciences, UC Berkeley**.
 
@@ -35,10 +36,10 @@ La clase se dará en 3 ejercicios:
 **RECONOCIMIENTO**
 
 
-EL Dr. Magallanes agradece a la Pontificia Universidad Católica del Perú, por su apoyo en la participación en la Escuela ALACIP.
+EL Dr. Magallanes agradece al equipo del GI3P de la Pontificia Universidad Católica del Perú, por su apoyo en la preparación de los materiales para la Escuela ALACIP.
 
 <center>
-<img src="https://dci.pucp.edu.pe/wp-content/uploads/2014/02/Logotipo_colores-290x145.jpg" style="width: 400px;"/>
+<img src="https://github.com/escuela-alacip/dataViz/blob/master/pics/gi3p.png" style="width: 400px;"/>
 </center>
 
 
